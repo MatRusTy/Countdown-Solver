@@ -32,11 +32,6 @@ let rec powerset (lst : 'A list) : 'A list list =
       let ps = powerset xs in
       ps @ List.map (fun ss -> x :: ss) ps
 
-let rec print_str_list list = 
-  match list with
-  | [] -> ()
-  | x :: xs -> print_endline x; print_str_list xs
-
 let solve input target: expr list = 
 
   let input_exprs = List.map (fun x -> Num x) input in
