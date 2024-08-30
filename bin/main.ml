@@ -4,15 +4,15 @@ open Lettersgame.LettersGame
 
 (* NUMBERS GAME *)
 let input = [6; 5; 4; 2; 75; 50]
-let goal = 537
+let goal = 999
 
-let solution_opt = solve input goal;;
+let solutions = solve input goal;;
 
-if Option.is_none solution_opt then
+if solutions = [] then
 	print_endline "No solution exists"
 else
-	(print_endline "Solution found";
-	print_endline (to_string (Option.get solution_opt)))
+	(print_endline "Solutions:";
+	print_str_list (List.map to_string solutions))
 
 (* LETTERS GAME *)
 let lg_input = ['s'; 't'; 'p'; 'b'; 'u'; 'a'; 'e'; 'r'; 's']

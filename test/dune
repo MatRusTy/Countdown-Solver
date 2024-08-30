@@ -1,2 +1,3 @@
 (test
- (name Countdown_Solver))
+ (name test)
+ (libraries Numbersgame alcotest))
