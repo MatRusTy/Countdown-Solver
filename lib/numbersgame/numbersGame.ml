@@ -1,17 +1,4 @@
-open Expression
 open Interpreter
-
-let non_det_compose (elem : 'A) (op : 'A -> 'A -> 'A) (elems : 'A list) : 'A list =
-  List.map (op elem) elems
-
-let rec non_det_compute (elems : 'A list) (ops : ('A -> 'A -> 'A) list) : 'A list =
-  match elems with
-  | [] -> []
-  | [x] -> [x]
-  | x :: xs ->
-      let sub_elems = non_det_compute xs ops in
-      List.flatten (List.map (fun op -> non_det_compose x op sub_elems) ops)
-
 
 let rec insert (x : 'A) (lst : 'A list) : 'A list list =
   match lst with
@@ -25,31 +12,86 @@ let rec permutations (lst : 'A list) : 'A list list =
   | h :: t -> 
       List.flatten (List.map (insert h) (permutations t))
 
-let rec powerset (lst : 'A list) : 'A list list = 
-  match lst with
-  | [] -> [[]]
-  | x :: xs ->
-      let ps = powerset xs in
-      ps @ List.map (fun ss -> x :: ss) ps
+type computation =
+{
+  nums : int list;
+  history : string;
+}
 
-let solve input target: expr list = 
+type result =
+{
+  res : int;
+  history : string;
+}
 
-  let input_exprs = List.map (fun x -> Num x) input in
+type operator =
+{
+  op : int -> int -> int option;
+  print : string;
+}
 
-  let input_perms = 
-    List.flatten (List.map (fun lst -> permutations lst) (powerset input_exprs))
+
+let pick2 (lst : computation) : computation list =
+List.map (fun p ->
+{
+  nums = p;
+  history = lst.history;
+})
+(permutations lst.nums) (* Todo: optimise *)
+
+let comp2 (ops : operator list) (cmp : computation): computation list =
+  match cmp.nums with
+  | [] -> [cmp]
+  | [_] -> [cmp]
+  | x :: y :: lst' -> List.filter_map (fun op ->
+      let* newval = (op.op x y) in
+      Some
+      {
+        nums = newval :: lst';
+        history = cmp.history ^ string_of_int x ^ op.print ^ string_of_int y ^ " = " ^ string_of_int newval ^ "\n";
+      }
+    ) ops
+
+let non_det_compose ops lst =
+  List.flatten (List.map (comp2 ops) (pick2 lst))
+
+
+let rec non_det_compute_inner (ops) (cmps : computation list) (ress : result list) : result list =
+  match cmps with
+  | [] -> ress
+  | cmp :: lsts' -> 
+      match cmp.nums with
+      | [] -> ress
+      | [x] -> non_det_compute_inner ops lsts' ({res = x; history = cmp.history} :: ress)
+      | _ -> non_det_compute_inner ops ((non_det_compose ops cmp) @ lsts') ress
+
+let non_det_compute ops (lst : computation) : result list =
+  non_det_compute_inner ops [lst] []
+
+let solve input target: result list =
+  let ops =
+    [
+      {
+        op = (fun x -> fun y -> Some (x + y));
+        print = "+";
+      };
+      {
+        op = (fun x -> fun y -> if x - y >= 0 then Some (x - y) else None);
+        print = "-";
+      };
+      {
+        op = (fun x -> fun y -> Some (x * y));
+        print = "*";
+      };
+      {
+        op = (fun x -> fun y -> if y != 0 && x mod y = 0 then Some (x / y) else None);
+        print = "/";
+      };
+    ]
   in
 
-  let add = fun x y -> Plus (x, y) in
-  let sub = fun x y -> Minus (x, y) in
-  let mul = fun x y -> Times (x, y) in
-  let div = fun x y -> Divide (x, y) in
+  let computation_seed = {nums = input; history = ""} in
 
-  let ops = [add; sub; mul; div] in
-
-  let all_expr =
-    List.flatten (List.map (fun perm -> non_det_compute perm ops) input_perms)
-  in
-
-  List.filter (fun e -> eval e = Some target) all_expr
+  let results = non_det_compute ops computation_seed in
   
+  List.filter (fun res -> res.res = target) results
