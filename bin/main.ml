@@ -2,8 +2,8 @@ open Numbersgame.NumbersGame
 open Lettersgame.LettersGame
 
 (* NUMBERS GAME *)
-let input = [6; 5; 4; 10]
-let goal = 120
+let input = [100; 8; 1; 8; 2; 10]
+let goal = 719
 
 let solutions = solve input goal;;
 
