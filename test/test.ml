@@ -1,5 +1,5 @@
-open Numbersgame.Expression
-open Numbersgame.Interpreter
+open Archived.Expression
+open Archived.Interpreter
 
 let eval1 () =
   Alcotest.(check (option int)) "eval" (Some 2) (eval (Plus ((Num 1), (Num 1))))
