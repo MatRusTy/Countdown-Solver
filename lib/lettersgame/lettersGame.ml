@@ -21,21 +21,7 @@ let is_sub_freq f1 f2 =
 	in
 	not (FreqMap.exists f2_proper_sub f1)
 
-let first_k list k =
-	let rec first_k_tail list k cumulative =
-		match list, k with
-		| _, 0 -> cumulative
-		| [], _ -> cumulative
-		| x :: xs, i -> first_k_tail xs (i-1) (x :: cumulative)
-	in
-	List.rev (first_k_tail list k [])
-
-let rec print_str_list list = 
-	match list with
-	| [] -> ()
-	| x :: xs -> print_endline x; print_str_list xs
-
-let resolve (input : char list) (amount : int) : string list = 
+let resolve (input : char list) : string list = 
 	let letters = List.map (Char.lowercase_ascii) input in
 
 	let letters_freq = List.fold_left update_freq_map FreqMap.empty letters in
@@ -46,7 +32,5 @@ let resolve (input : char list) (amount : int) : string list =
 		all_words
 	in
 
-	let sorted_candidates = 
-		let sortfunc s1 s2 = String.length s2 - String.length s1 in
-		List.fast_sort sortfunc candidates2 in
-	first_k sorted_candidates amount
+	let sortfunc s1 s2 = String.length s2 - String.length s1 in
+	List.fast_sort sortfunc candidates2 
